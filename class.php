@@ -16,6 +16,20 @@ class Currency {
         $this->ask = $ask;
     }
 
+
+    function GetCurr(){
+        return $this->curr;
+    }
+    function GetCode(){
+        return $this->code;
+    }
+    function GetBid(){
+        return $this->bid;
+    }
+    function GetAsk(){
+        return $this->ask;
+    }
+
     function to_database()
     {
         return "'$this->curr','$this->code','$this->bid','$this->ask'";
@@ -55,24 +69,67 @@ abstract class DatabaseCommand{
         $this->table = $table;
     }
 
-    abstract function execute($data);
+    abstract function execute($data = NULL);
+    
 }
 
-class InstertCommand extends DatabaseCommand{
-    function execute($data){
-        //do rozbudowania żeby przyjął tablice
-        $command = "INSERT INTO ".$this->table." VALUES (".$data.")";
-        //$this->connection -> query($command);
-        echo $command;
+class InsertCommand extends DatabaseCommand{
+    function execute($data = NULL){
+        
+        if(is_array($data))
+        {
+            $command = "INSERT INTO ".$this->table." VALUES";
+            foreach($data as $query) $command .= " (".$query."),";
+
+            $command = substr($command,0,-1);
+        }
+        else $command = "INSERT INTO ".$this->table." VALUES (".$data.")";
+        $this->connection -> query($command);
+        //do przełożenia na try catch by uniknąc duplikatów
+       //echo $command;
     }
 }
 
 class SelectCommand extends DatabaseCommand{
-    function execute($data){
-        //data akceptuje klauzule where
-        $command = "SELECT * FROM ".$this->table;
-        //$aaa = ;
+    function execute($data = NULL){
+       if(is_null($data)) $command = "SELECT * FROM ".$this->table;
+       else $command = "SELECT * FROM ".$this->table." WHERE ".$data;
+
         return $this->connection -> query($command)-> fetch_all();
     }
 }
+
+class Transaction{
+    private $from;
+    private $to;
+    private $from_ammount;
+    private $to_ammount;
+
+
+    function __construct($from,$to, $from_ammount)
+    {
+        $this->from = $from;
+        $this->to = $to;
+        $this->from_ammount = $from_ammount;
+    }
+
+    function calc(){
+        $this->to_ammount = round($this->from->GetBid()*$this->from_ammount/$this->to->GetAsk(),2);
+        return $this->to_ammount;
+    }
+
+    function save($connection){
+        $send = new InsertCommand($connection, 'transactions');
+        $command = [$this->from->GetCode() ,$this->to->GetCode() ,$this->from_ammount, $this->to_ammount, $this->from->GetBid()/$this->to->GetAsk()];
+        $command = join("','",$command);
+        $command = "'".$command."'";
+        $send->execute($command);
+        //print_r($command);
+
+    }
+
+
+
+}
+
 ?>
