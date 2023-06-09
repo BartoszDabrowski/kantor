@@ -58,10 +58,17 @@ abstract class DatabaseCommand{
     abstract function execute($data);
 }
 
-class InstertCommand extends DatabaseCommand{
+class InsertCommand extends DatabaseCommand{
     function execute($data){
         //do rozbudowania żeby przyjął tablice
-        $command = "INSERT INTO ".$this->table." VALUES (".$data.")";
+        if(is_array($data))
+        {
+            $command = "INSERT INTO ".$this->table." VALUES";
+            foreach($data as $query) $command .= " (".$query."),";
+
+            $command = substr($command,0,-1);
+        }
+        else $command = "INSERT INTO ".$this->table." VALUES (".$data.")";
         //$this->connection -> query($command);
         echo $command;
     }

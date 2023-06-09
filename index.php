@@ -11,10 +11,15 @@
     $conn = new mysqli($db_host, $db_user, $db_pass, $db_db);
 
     
-    $test = new SelectCommand($conn, 'currencies');
-    $zmienna = $test->execute($currencies[0]->to_database());
-    $x = Currency::from_database($zmienna[0]);
-    print_r($x)
+    $test = new InsertCommand($conn, 'currencies');
+    $zmienna =[];
+    foreach ($currencies as $curr) array_push($zmienna, $curr->to_database());
+    
+    $test->execute($zmienna);
+
+    //print_r($x);
+    //$x = Currency::from_database($zmienna[0]);
+    //print_r($zmienna);
 
 
 
