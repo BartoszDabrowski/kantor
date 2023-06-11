@@ -10,6 +10,11 @@ $select = new SelectCommand($conn, 'transactions');
 $result = $select->execute();
 ?>
 
+<style>
+table, th, tr{
+    border:1px solid black; border-collapse:collapse;
+}
+</style>
 
 <table>
     <tr>
@@ -21,11 +26,11 @@ $result = $select->execute();
     </tr>
     <?php foreach($result as $data){ 
         echo "<tr>";
-        echo "<th>'$data[0]'</th>";
-        echo "<th>'$data[1]'</th>";
-        echo "<th>'$data[2]'</th>";
-        echo "<th>'$data[3]'</th>";
-        echo "<th>'$data[4]'</th>";
+        echo "<th>$data[0]</th>";
+        echo "<th>$data[1]</th>";
+        echo "<th>$data[2]</th>";
+        echo "<th>$data[3]</th>";
+        echo "<th>$data[4]</th>";
         echo "</tr>";
      } ?>
 
