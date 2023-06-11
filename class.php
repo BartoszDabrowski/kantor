@@ -12,8 +12,8 @@ class Currency {
     {
         $this->curr = $curr;
         $this->code = $code;
-        $this->bid = $bid;
-        $this->ask = $ask;
+        $this->bid = floatval($bid);
+        $this->ask = floatval($ask);
     }
 
 
@@ -32,12 +32,12 @@ class Currency {
 
     function to_database()
     {
-        return "'$this->curr','$this->code','$this->bid','$this->ask'";
+        return "NULL,'$this->curr','$this->code','$this->bid','$this->ask','".date('Y-m-d')."'";
     }
 
     static function from_database($array)
     {
-        return new Currency ($array[0], $array[1], $array[2], $array[3]);
+        return new Currency ($array[1], $array[2], $array[3], $array[4], $array[5]);
     }
 
 }
@@ -75,7 +75,6 @@ abstract class DatabaseCommand{
 
 class InsertCommand extends DatabaseCommand{
     function execute($data = NULL){
-        
         if(is_array($data))
         {
             $command = "INSERT INTO ".$this->table." VALUES";
@@ -84,7 +83,10 @@ class InsertCommand extends DatabaseCommand{
             $command = substr($command,0,-1);
         }
         else $command = "INSERT INTO ".$this->table." VALUES (".$data.")";
+        
         $this->connection -> query($command);
+        
+        
         //do przełożenia na try catch by uniknąc duplikatów
        //echo $command;
     }
@@ -110,7 +112,7 @@ class Transaction{
     {
         $this->from = $from;
         $this->to = $to;
-        $this->from_ammount = $from_ammount;
+        $this->from_ammount = floatval($from_ammount);
     }
 
     function calc(){
