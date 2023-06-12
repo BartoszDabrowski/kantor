@@ -1,6 +1,6 @@
 <?php
 
-
+//klasa zbiorcza waluty
 class Currency {
     private $curr;
     private $code;
@@ -16,7 +16,7 @@ class Currency {
         $this->ask = floatval($ask);
     }
 
-
+    //gettery
     function GetCurr(){
         return $this->curr;
     }
@@ -29,19 +29,19 @@ class Currency {
     function GetAsk(){
         return $this->ask;
     }
-
+    //metoda zwracająca wartości w celu dodania ich do bazy
     function to_database()
     {
         return "NULL,'$this->curr','$this->code','$this->bid','$this->ask','".date('Y-m-d')."'";
     }
-
+    //metoda zwracająca obiekt o ustawionych polach; index 0 to własność id, która jest niepotrzebna,
     static function from_database($array)
     {
-        return new Currency ($array[1], $array[2], $array[3], $array[4], $array[5]);
+        return new Currency ($array[1], $array[2], $array[3], $array[4]);
     }
 
 }
-
+//klasa pomagająca dodać dane do bazy
 class GetCurrencies{
    private static $url = 'https://api.nbp.pl/api/exchangerates/tables/C?format=json';
    static function get()
@@ -60,7 +60,7 @@ class GetCurrencies{
     return $currencies_to_return;
    }
 }
-
+//klasa abstrakcyjna, umożliwiająca wykonywanie zapytań do bazy
 abstract class DatabaseCommand{
     protected $connection;
     protected $table;
@@ -73,6 +73,7 @@ abstract class DatabaseCommand{
     
 }
 
+//klasa umożliwiająca dodanie rekordów
 class InsertCommand extends DatabaseCommand{
     function execute($data = NULL){
         if(is_array($data))
@@ -87,11 +88,9 @@ class InsertCommand extends DatabaseCommand{
         $this->connection -> query($command);
         
         
-        //do przełożenia na try catch by uniknąc duplikatów
-       //echo $command;
     }
 }
-
+//klasa umożliwiająca odczytanie rekordów
 class SelectCommand extends DatabaseCommand{
     function execute($data = NULL){
        if(is_null($data)) $command = "SELECT * FROM ".$this->table;
@@ -100,7 +99,7 @@ class SelectCommand extends DatabaseCommand{
         return $this->connection -> query($command)-> fetch_all();
     }
 }
-
+//klasa służąca operacjom walutowym
 class Transaction{
     private $from;
     private $to;
@@ -114,23 +113,22 @@ class Transaction{
         $this->to = $to;
         $this->from_ammount = floatval($from_ammount);
     }
-
+    //fukncja obliczająca kwotę w nowej walucie
     function calc(){
         $this->to_ammount = round($this->from->GetBid()*$this->from_ammount/$this->to->GetAsk(),2);
         return $this->to_ammount;
     }
-
+    //funkcja wysyłająca informacje o przewalutowaniu do bazy danych
     function save($connection){
-        $send = new InsertCommand($connection, 'transactions');
-        $command = [$this->from->GetCode() ,$this->to->GetCode() ,$this->from_ammount, $this->to_ammount, $this->from->GetBid()/$this->to->GetAsk()];
+        $send = new InsertCommand($connection, 'transactions');//utworzenie obiektu wstawiającego dane do bazy
+        //przystosowanie wartości do wstawienia; przy tworzeniu obiektu klasy Transactions podaliśmy obiekty klasy Currency. Dlatego wywołanie metod tej klasy tutaj działa
+        $command = [$this->from->GetCode() ,$this->to->GetCode() ,$this->from_ammount, $this->to_ammount, $this->from->GetBid()/$this->to->GetAsk()]; 
         $command = join("','",$command);
         $command = "'".$command."'";
+        //poprawienie i rozdzielenie wartości w kwerendzie cudzysłowiami i przecinkami
         $send->execute($command);
-        //print_r($command);
-
+        //wykonanie zapytania
     }
-
-
 
 }
 

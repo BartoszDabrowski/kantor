@@ -3,30 +3,31 @@
 include 'class.php';
 include 'conn.php';
 
-$conn = new mysqli($db_host, $db_user, $db_pass, $db_db);
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_db); //nawiązanie połączenia
 
 $new_curr = $_POST['curr_to'];
 $old_curr = $_POST['curr_from'];
-$ammount = floatval($_POST['ammount']);
+$ammount = floatval($_POST['ammount']); //wymuszenie typu zmiennoprzecinkowego; jeśli użytkownik podał tu coś innego niż liczbę zmienna przybierze wartość 0
 $msg = '';
 
-if($new_curr == $old_curr) $msg = "<h1>wybierz różne waluty </h1>";
+if($new_curr == $old_curr) $msg = "<h1>wybierz różne waluty </h1>"; //weryfikacja czy waluty są różne
 else{
-    if($ammount == 0) $msg = "<h1>Podana wartość nie jest liczbą </h1>";
+    if($ammount <= 0) $msg = "<h1>Podana wartość nie jest liczbą lub jest mniejsza bądź równa 0</h1>"; //upewnienie się czy użytkownik podał liczbę dodatnią, różną od 0; przewalutowanie ujemnych wartości bądź 0 nie ma sensu
     else {
         $select = new SelectCommand($conn, 'currencies');
         $result = $select->execute("currency = '$old_curr' OR currency = '$new_curr' ORDER BY date DESC LIMIT 2");
-        //$from_object = new Currency($result[0][0],$result[0][1],$result[0][2],$result[0][3]);
-        //$to_object = new Currency($result[1][0],$result[1][1],$result[1][2],$result[1][3]);
-        $from_object = Currency::from_database($result[0]);
-        $to_object = Currency::from_database($result[1]);
-
+        //zapytanie zwraca tylko waluty wybrane przez użytkownika
         
-        if($from_object->GetCurr() == $old_curr) $transaction = new Transaction($from_object,$to_object,$ammount);
-        else $transaction = new Transaction($to_object,$from_object,$ammount);
+        //nazwa pochodzi od obiektów
+        $curr_object_1 = Currency::from_database($result[0]);
+        $curr_object_2 = Currency::from_database($result[1]);
 
-        $x = $transaction->calc();
-        $transaction->save($conn);
+        //sprawdzenie który obiekt jest walutą źródłową; bez tego waluta posiadająca niższy id zawsze byłaby źródłowa
+        if($curr_object_1->GetCurr() == $old_curr) $transaction = new Transaction($curr_object_1,$curr_object_2,$ammount);
+        else $transaction = new Transaction($curr_object_2,$curr_object_1,$ammount);
+
+        $bufor = $transaction->calc(); //wykonanie obliczeń
+        $transaction->save($conn); //wysłanie danych do bazy
         $msg = "<h1> Przewalutowano poprawnie </h1>";
     }
 }
@@ -34,9 +35,6 @@ else{
 
 
 echo $msg;
-
-//$send = new InsertCommand($conn, 'transactions');
-//$send->execute("'$old_curr','$new_curr','$ammount','$przewalutowanie'");
 
 $conn->close();
 
