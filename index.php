@@ -1,17 +1,16 @@
-<!doctype html>
+﻿<!doctype html>
 <?php
     include 'class.php';
     include 'conn.php';
     
-    //$currencies = GetCurrencies::get();
-    
-    $conn = new mysqli($db_host, $db_user, $db_pass, $db_db);
-    //$result = $conn->query("SELECT DISTINCT date FROM currencies ORDER BY date DESC LIMIT 1")->fetch_all();
-    
+    $conn = new mysqli($db_host, $db_user, $db_pass, $db_db); //nawiązanie połączenia
+	$conn->set_charset("utf8mb4");
+    //sprawdzenie czy w bazie są wpisy dodane dzisiaj    
     $select_query = new SelectCommand($conn,'currencies');
     $query_currencies = $select_query->execute('date = CURDATE()');
 
-    if(isset($currencies)) {
+    //jeśli brakuje takich wpisów, następuje pobór danych z API i dodanie do bazy; jeśli takie wpisy są, następuje pobranie danych z bazy
+    if(!empty($query_currencies)) {
         $currencies = [];
         foreach ($query_currencies as $record) array_push($currencies, Currency::from_database($record));
     }else{
@@ -23,11 +22,11 @@
         $insert->execute($new_currencies);    
 
     }
-    
+    //zakończenie połączenia
     $conn->close();
 
 ?>
-
+<!-- formularz służący przewalutowaniu -->
 <form action="change.php" method="post">
     Kwota
     <input type="number" name="ammount" id="ammount" step="0.01"><br>
@@ -56,7 +55,7 @@ table, th, tr{
     border:1px solid black; border-collapse:collapse;
 }
 </style>
-
+<!-- wyświetlenie dzisiejszych kursów -->
 <table>
     <tr>
         <th>Waluta</th>
