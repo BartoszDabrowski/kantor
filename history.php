@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 
 include 'class.php';
 include 'conn.php';
 
 $conn = new mysqli($db_host, $db_user, $db_pass, $db_db);
-
+$conn->set_charset("utf8mb4");
 //zwrócenie zawartości tabeli z przewalutowaniami
 $select = new SelectCommand($conn, 'transactions');
 $result = $select->execute();

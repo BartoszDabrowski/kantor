@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 
 include 'class.php';
 include 'conn.php';
 
 $conn = new mysqli($db_host, $db_user, $db_pass, $db_db); //nawiązanie połączenia
-
+$conn->set_charset("utf8mb4");
 $new_curr = $_POST['curr_to'];
 $old_curr = $_POST['curr_from'];
 $ammount = floatval($_POST['ammount']); //wymuszenie typu zmiennoprzecinkowego; jeśli użytkownik podał tu coś innego niż liczbę zmienna przybierze wartość 0
@@ -17,7 +17,7 @@ else{
         $select = new SelectCommand($conn, 'currencies');
         $result = $select->execute("currency = '$old_curr' OR currency = '$new_curr' ORDER BY date DESC LIMIT 2");
         //zapytanie zwraca tylko waluty wybrane przez użytkownika
-        
+    
         //nazwa pochodzi od obiektów
         $curr_object_1 = Currency::from_database($result[0]);
         $curr_object_2 = Currency::from_database($result[1]);
@@ -39,4 +39,4 @@ echo $msg;
 $conn->close();
 
 ?>
-<a href="/"><button>Wróć do strony głównej</button></a>
+<a href="/rekrutacja"><button>Wróć do strony głównej</button></a>

@@ -1,10 +1,10 @@
-<!doctype html>
+﻿<!doctype html>
 <?php
     include 'class.php';
     include 'conn.php';
     
     $conn = new mysqli($db_host, $db_user, $db_pass, $db_db); //nawiązanie połączenia
-
+	$conn->set_charset("utf8mb4");
     //sprawdzenie czy w bazie są wpisy dodane dzisiaj    
     $select_query = new SelectCommand($conn,'currencies');
     $query_currencies = $select_query->execute('date = CURDATE()');
